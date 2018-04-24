@@ -74,8 +74,9 @@ function _module(config) {
         device['name'] = d.display_location.full;
         device['id'] = d.display_location.latitude + ',' + d.display_location.longitude;
         device['type'] = 'sensor.temperature';
-        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {} };
+        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {}, 'humidity' : {} };
         device['current']['temperature']['current'] = d.temp_f;
+        device['current']['humidity']['current'] = parseInt(d.relative_humidity.replace('%',''));
         //device['current']['online'] = d.Online;
         return device;
     }
