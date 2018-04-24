@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinel-weather
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: weather
+    context: sentinel-services
+    version: v1
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sentinel-weather
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: weather
+        context: sentinel-services
+        version: v1
+    spec:
+      containers:
+        -
+          name: sentinel-weather
+          image: docker.steventaylor.me/sentinel/services/weather/weather-x86_64:latest-staging
+          imagePullPolicy: Always
+          env:
+            -
+              name: "PORT"
+              value: "5000"
+            -
+              name: "CONSUL"
+              value: "consul.steventaylor.me"
+            -
+              name: "REDIS"
+              value: "redis-redis"
+          ports:
+            -
+              containerPort: 5000
+              protocol: TCP
+      imagePullSecrets:
+      - name: regcred
+      nodeSelector:
+          beta.kubernetes.io/arch: amd64
