@@ -37,12 +37,8 @@ function _module(config) {
     require('request').debug = true
     require('request-debug')(request);
 */
-    let apiKey = global.config.apiKey; //'crcLaVjD5CBmZ4qduhnqHL7ce03ZKEOB';
-    /*
-        if ( process.env.DEBUG ) {
-            apiKey = 'vWo7wfSopNBzoTvZ7Hf4UEee95r5boOR';
-        }
-    */
+    let apiKey = global.config.apiKey;
+
     if (!apiKey){
         console.error('Missing apiKey in configuration');
         process.exit(1);
@@ -54,19 +50,19 @@ function _module(config) {
     let opts = global.config.location;
 
     deviceCache.on( 'set', function( key, value ){
-        let data = JSON.stringify( { module: '_module', id : key, value : value });
+        let data = JSON.stringify( { module: global.moduleName, id : key, value : value });
         console.log( 'sentinel.device.insert => ' + data );
         pub.publish( 'sentinel.device.insert', data);
     });
 
     deviceCache.on( 'delete', function( key ){
-        let data = JSON.stringify( { module: '_module', id : key });
+        let data = JSON.stringify( { module: global.moduleName, id : key });
         console.log( 'sentinel.device.delete => ' + data );
         pub.publish( 'sentinel.device.delete', data);
     });
 
     statusCache.on( 'set', function( key, value ){
-        let data = JSON.stringify( { module: '_module', id : key, value : value });
+        let data = JSON.stringify( { module: global.moduleName, id : key, value : value });
         console.log( 'sentinel.device.update => ' + data );
         pub.publish( 'sentinel.device.update', data);
     });

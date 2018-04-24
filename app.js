@@ -17,6 +17,8 @@ const consul = require('consul')( {
 
 let moduleName = 'weather';
 
+global.moduleName = moduleName;
+
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(cookieParser());
 
@@ -108,7 +110,7 @@ consul.kv.get(`config/sentinel/${moduleName}`, function(err, result) {
                 if (swaggerExpress.runner.swagger.paths['/health']) {
                     console.log(`you can get /health?id=${serviceId} on port ${port}`);
                 }
-                global.module = require(`./module.js`)(config);
+                global.module = require(`./${moduleName}.js`)(config);
             });
 
         });
