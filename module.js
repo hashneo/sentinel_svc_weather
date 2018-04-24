@@ -77,7 +77,7 @@ function _module(config) {
         let device = { 'current' : {} };
         device['name'] = d.display_location.full;
         device['id'] = d.display_location.latitude + ',' + d.display_location.longitude;
-        device['type'] = 'temperatur.sensor';
+        device['type'] = 'sensor.temperature';
         device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {} };
         device['current']['temperature']['current'] = d.temp_f;
         //device['current']['online'] = d.Online;
