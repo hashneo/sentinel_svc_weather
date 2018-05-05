@@ -182,7 +182,7 @@ function _module(config) {
             function pollSystem() {
                 updateStatus()
                     .then(() => {
-                        setTimeout(pollSystem, 60000);
+                        setTimeout(pollSystem, 300000);
                     })
                     .catch((err) => {
                         console.error(err);
