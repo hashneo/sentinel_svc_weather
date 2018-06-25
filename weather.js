@@ -69,14 +69,37 @@ function _module(config) {
 
 	var that = this;
 
-    function processDevice( d ){
+    function processHumidity( d ){
+        let device = { 'current' : {} };
+        device['name'] = d.display_location.full;
+        device['id'] = d.display_location.latitude + ',' + d.display_location.longitude + ' - humidity';
+        device['type'] = 'sensor.humidity';
+        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'humidity' : {} };
+        device['current']['humidity']['current'] = parseInt(d.relative_humidity.replace('%',''));
+        //device['current']['online'] = d.Online;
+        return device;
+    }
+
+    function processWind( d ){
+        let device = { 'current' : {} };
+        device['name'] = d.display_location.full;
+        device['id'] = d.display_location.latitude + ',' + d.display_location.longitude+ ' - wind';
+        device['type'] = 'sensor.wind';
+        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'wind' : {} };
+        device['current']['wind']['current'] = Math.round(( parseInt(d.wind_kph) / 1852) * 1000 );
+        device['current']['wind']['gust'] = Math.round(( parseInt(d.wind_gust_kph) / 1852) * 1000 );
+        device['current']['wind']['direction'] = parseInt(d.wind_degrees);
+        //device['current']['online'] = d.Online;
+        return device;
+    }
+
+    function processTemperature( d ){
         let device = { 'current' : {} };
         device['name'] = d.display_location.full;
         device['id'] = d.display_location.latitude + ',' + d.display_location.longitude;
         device['type'] = 'sensor.temperature';
-        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {}, 'humidity' : {} };
+        device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {}, };
         device['current']['temperature']['current'] = d.temp_f;
-        device['current']['humidity']['current'] = parseInt(d.relative_humidity.replace('%',''));
         //device['current']['online'] = d.Online;
         return device;
     }
@@ -139,9 +162,18 @@ function _module(config) {
                 if (err)
                     return reject(err);
 
-                let d = processDevice(data);
+                let d = processTemperature(data);
 
                 statusCache.set(d.id, d.current);
+
+                d = processWind(data);
+
+                statusCache.set(d.id, d.current);
+
+                d = processHumidity(data);
+
+                statusCache.set(d.id, d.current);
+
             });
 
             fulfill();
@@ -163,12 +195,27 @@ function _module(config) {
 
                 let devices = [];
 
-                let d = processDevice(data);
+                let d = processTemperature(data);
 
                 statusCache.set(d.id, d.current);
                 delete d.current;
                 deviceCache.set(d.id, d);
                 devices.push(d);
+
+                d = processWind(data);
+
+                statusCache.set(d.id, d.current);
+                delete d.current;
+                deviceCache.set(d.id, d);
+                devices.push(d);
+
+                d = processHumidity(data);
+
+                statusCache.set(d.id, d.current);
+                delete d.current;
+                deviceCache.set(d.id, d);
+                devices.push(d);
+
 
                 fulfill(devices);
             });
