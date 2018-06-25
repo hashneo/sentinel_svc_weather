@@ -165,7 +165,7 @@ function _module(config) {
                 let d = processTemperature(data);
 
                 statusCache.set(d.id, d.current);
-
+/*
                 d = processWind(data);
 
                 statusCache.set(d.id, d.current);
@@ -173,7 +173,7 @@ function _module(config) {
                 d = processHumidity(data);
 
                 statusCache.set(d.id, d.current);
-
+*/
             });
 
             fulfill();
@@ -201,7 +201,7 @@ function _module(config) {
                 delete d.current;
                 deviceCache.set(d.id, d);
                 devices.push(d);
-
+/*
                 d = processWind(data);
 
                 statusCache.set(d.id, d.current);
@@ -215,7 +215,7 @@ function _module(config) {
                 delete d.current;
                 deviceCache.set(d.id, d);
                 devices.push(d);
-
+*/
 
                 fulfill(devices);
             });
