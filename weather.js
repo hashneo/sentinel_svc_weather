@@ -23,20 +23,24 @@ function _module(config) {
         process.exit(1);
     });
 
-    var NodeCache = require( "node-cache" );
+    const crypto = require('crypto');
 
-    var deviceCache = new NodeCache();
-    var statusCache = new NodeCache();
+    let NodeCache = require( "node-cache" );
 
-    var merge = require('deepmerge');
+    let deviceCache = new NodeCache();
+    let statusCache = new NodeCache();
 
-    var request = require('request');
-    var https = require('https');
-    var keepAliveAgent = new https.Agent({ keepAlive: true });
-/*
-    require('request').debug = true
-    require('request-debug')(request);
-*/
+    let merge = require('deepmerge');
+
+    let request = require('request');
+    let https = require('https');
+    let keepAliveAgent = new https.Agent({ keepAlive: true });
+
+
+    /*
+        require('request').debug = true
+        require('request-debug')(request);
+    */
     let apiKey = global.config.apiKey;
 
     if (!apiKey){
@@ -67,12 +71,18 @@ function _module(config) {
         pub.publish( 'sentinel.device.update', data);
     });
 
-	var that = this;
+	let that = this;
+
+    function hashId(v){
+        let shasum = crypto.createHash('sha1');
+        shasum.update(v);
+        return shasum.digest('hex');
+    }
 
     function processHumidity( d ){
         let device = { 'current' : {} };
-        device['name'] = d.display_location.full;
-        device['id'] = d.display_location.latitude + ',' + d.display_location.longitude + ' - humidity';
+        device['name'] = d.display_location.full + ' - Humidity';
+        device['id'] = hashId( d.display_location.full + ',' +  d.display_location.latitude + ',' + d.display_location.longitude + ',humidity' );
         device['type'] = 'sensor.humidity';
         device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'humidity' : {} };
         device['current']['humidity']['current'] = parseInt(d.relative_humidity.replace('%',''));
@@ -82,8 +92,8 @@ function _module(config) {
 
     function processWind( d ){
         let device = { 'current' : {} };
-        device['name'] = d.display_location.full;
-        device['id'] = d.display_location.latitude + ',' + d.display_location.longitude+ ' - wind';
+        device['name'] = d.display_location.full + ' - Wind';
+        device['id'] = hashId( d.display_location.full + ',' + d.display_location.latitude + ',' + d.display_location.longitude + ',wind' );
         device['type'] = 'sensor.wind';
         device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'wind' : {} };
         device['current']['wind']['current'] = Math.round(( parseInt(d.wind_kph) / 1852) * 1000 );
@@ -95,8 +105,8 @@ function _module(config) {
 
     function processTemperature( d ){
         let device = { 'current' : {} };
-        device['name'] = d.display_location.full;
-        device['id'] = d.display_location.latitude + ',' + d.display_location.longitude;
+        device['name'] = d.display_location.full + ' - Temperature';
+        device['id'] = hashId( d.display_location.full + ',' + d.display_location.latitude + ',' + d.display_location.longitude + ',temperature' );
         device['type'] = 'sensor.temperature';
         device['current'] = { 'armed' : 'false', 'tripped' : { 'current' : true, 'last' : new Date(d.observation_time_rfc822).toISOString() },  'temperature' : {}, };
         device['current']['temperature']['current'] = d.temp_f;
@@ -162,18 +172,15 @@ function _module(config) {
                 if (err)
                     return reject(err);
 
-                let d = processTemperature(data);
+                let t = processTemperature(data);
+                statusCache.set(t.id, t.current);
 
-                statusCache.set(d.id, d.current);
-/*
-                d = processWind(data);
+                let w = processWind(data);
+                statusCache.set(w.id, w.current);
 
-                statusCache.set(d.id, d.current);
+                let h = processHumidity(data);
+                statusCache.set(h.id, h.current);
 
-                d = processHumidity(data);
-
-                statusCache.set(d.id, d.current);
-*/
             });
 
             fulfill();
@@ -195,27 +202,26 @@ function _module(config) {
 
                 let devices = [];
 
-                let d = processTemperature(data);
+                let t = processTemperature(data);
 
-                statusCache.set(d.id, d.current);
-                delete d.current;
-                deviceCache.set(d.id, d);
-                devices.push(d);
-/*
-                d = processWind(data);
+                statusCache.set(t.id, t.current);
+                delete t.current;
+                deviceCache.set(t.id, t);
+                devices.push(t);
 
-                statusCache.set(d.id, d.current);
-                delete d.current;
-                deviceCache.set(d.id, d);
-                devices.push(d);
+                let w = processWind(data);
 
-                d = processHumidity(data);
+                statusCache.set(w.id, w.current);
+                delete w.current;
+                deviceCache.set(w.id, w);
+                devices.push(w);
 
-                statusCache.set(d.id, d.current);
-                delete d.current;
-                deviceCache.set(d.id, d);
-                devices.push(d);
-*/
+                let h = processHumidity(data);
+
+                statusCache.set(h.id, h.current);
+                delete h.current;
+                deviceCache.set(h.id, h);
+                devices.push(h);
 
                 fulfill(devices);
             });
