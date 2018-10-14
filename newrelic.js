@@ -10,7 +10,7 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: ['Sentinel App'],
+  app_name: ['Sentinel Weather'],
   /**
    * Your New Relic license key.
    */
