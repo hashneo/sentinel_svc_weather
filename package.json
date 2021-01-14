@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^5.2.0",
+    "mocha": "^8.2.1",
     "should": "^13.2.3",
     "supertest": "^3.3.0",
     "swagger-parser": "^6.0.2"
